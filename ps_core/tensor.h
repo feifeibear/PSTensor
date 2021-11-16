@@ -6,12 +6,13 @@
 #include <numeric>
 #include <vector>
 #include <variant>
-#include <assert.h>
+#include "enforce.h"
 
 namespace ps_tensor {
 
 namespace core {
 namespace details {
+
 
 struct DLPackManagedTensorDeleter {
   void operator()(DLManagedTensor *tensor) const {
@@ -69,8 +70,7 @@ struct VisitDLTensor {
   }
   const DLTensor &operator()(const DLTensorPtr &t) const { return *t; }
   const DLTensor &operator()(std::monostate) const {
-    // TT_THROW("Tensor is null");
-    std::cerr << "Tensor is null" << std::endl;
+    TT_THROW("Tensor is null");
   }
 };
 
@@ -103,7 +103,7 @@ class Tensor {
   Tensor(Tensor &&o) noexcept : tensor_(std::move(o.tensor_)){};
   Tensor &operator=(Tensor &&o) noexcept {
     if (this == &o) {
-      // TT_THROW("Tensor can not be assigned to itself!");
+      TT_THROW("Tensor can not be assigned to itself!");
     }
     tensor_ = std::move(o.tensor_);
     return *this;
@@ -125,9 +125,9 @@ class Tensor {
     if (pos < 0) {
       pos = dl_tensor.ndim + pos;
     }
-    // TT_ENFORCE_LT(pos, dl_tensor.ndim,
-    //               "The index(%d) is out of the range[0...%d]", pos,
-    //               dl_tensor.ndim - 1);
+    TT_ENFORCE_LT(pos, dl_tensor.ndim,
+                  "The index(%d) is out of the range[0...%d]", pos,
+                  dl_tensor.ndim - 1);
     return dl_tensor.shape[pos];
   }
 
@@ -230,7 +230,7 @@ class Tensor {
 
   Tensor operator[](int64_t n) {
     auto &dl_tensor = to_dl_tensor();
-    // TT_ENFORCE_GT(dl_tensor.ndim, 1, "operator[] needs ndim > 1");
+    TT_ENFORCE_GT(dl_tensor.ndim, 1, "operator[] needs ndim > 1");
     details::DLTensorPtr result(new DLTensor());
     result->dtype = dl_tensor.dtype;
     result->byte_offset = 0;
@@ -279,11 +279,11 @@ class Tensor {
 
   template <typename T>
   static void EnforceDataType(DLTensor t) {
-    // TT_ENFORCE_EQ(t.byte_offset, 0, "byte_offset must be zero");
+    TT_ENFORCE_EQ(t.byte_offset, 0, "byte_offset must be zero");
 
-    // TT_ENFORCE(details::IsDataType<T>(t.dtype),
-    //            "data type mismatch, request %s, actual (%d,%d)",
-    //            typeid(T).name(), t.dtype.code, t.dtype.bits);
+    TT_ENFORCE(details::IsDataType<T>(t.dtype),
+               "data type mismatch, request %s, actual (%d,%d)",
+               typeid(T).name(), t.dtype.code, t.dtype.bits);
   }
 
  private:

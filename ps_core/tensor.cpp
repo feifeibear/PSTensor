@@ -5,7 +5,6 @@ namespace ps_tensor {
 namespace core {
 
 
-
 static void DLManagedTensorDeletor(DLManagedTensor *self) {
   if (self == nullptr) {
     return;
@@ -28,21 +27,12 @@ static void DLManagedTensorDeletor(DLManagedTensor *self) {
   delete self;
 }
 
-// static allocator do not release memory
-static void DLManagedTensorDeletorWithoutData(DLManagedTensor *self) {
-  if (self == nullptr) {
-    return;
-  }
-  //  std::cerr << "call DLManagedTensorDeletorWithoutData" << std::endl;
-  delete[] self->dl_tensor.shape;
-  delete self;
-}
 
 DLManagedTensor *NewDLPackTensor(const std::vector<int64_t> &shape_list,
                                  DLDeviceType device, int device_id,
                                  uint8_t data_type_code, size_t bits,
                                  size_t lanes, const std::string &name) {
-  // TT_ENFORCE_NE(shape_list.size(), 0, "Shape list should not be empty");
+  TT_ENFORCE_NE(shape_list.size(), 0, "Shape list should not be empty");
   auto *newTensor = new DLManagedTensor();
 
   newTensor->dl_tensor.shape = new int64_t[shape_list.size()];
