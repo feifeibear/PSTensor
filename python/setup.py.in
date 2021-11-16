@@ -1,0 +1,24 @@
+from setuptools import setup, Extension
+
+with open("stub.c", "w") as f:
+    f.write("\n")
+
+
+setup(name='ps_tensor',
+      version='@PS_TENSOR_VERSION@',
+      description='ps_tensor',
+      packages=[
+          'ps_core',
+      ],
+      package_data={
+          '': [
+              '*.so',
+              '*.pyi'
+          ]
+      },
+      ext_modules=[Extension('_ps_tensor_stub_ext', ['stub.c'])],
+      include_package_data=True,
+      install_requires=[
+        "torch",
+      ]
+      )
