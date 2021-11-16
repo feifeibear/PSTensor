@@ -24,7 +24,7 @@ class NaiveAllocator : public BaseAllocator {
     void* data = nullptr;
     if (dev == kDLCPU) {
       return malloc(size);
-    } else if (dev == kDLGPU) {
+    } else if (dev == kDLCUDA) {
       try {
         cudaError_t result = cub_allocator.DeviceAllocate(&data, size);
         if (result != cudaSuccess) {
@@ -46,7 +46,7 @@ class NaiveAllocator : public BaseAllocator {
   void free(void* mem, DLDeviceType dev, const std::string& name) override {
     if (dev == kDLCPU) {
       delete mem;
-    } else if (dev == kDLGPU) {
+    } else if (dev == kDLCUDA) {
       try {
         cudaError_t result = cub_allocator.DeviceFree(mem);
         if (result != cudaErrorCudartUnloading && result != cudaSuccess) {

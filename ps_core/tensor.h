@@ -6,6 +6,7 @@
 #include <numeric>
 #include <vector>
 #include <variant>
+#include <assert.h>
 
 namespace ps_tensor {
 
@@ -69,6 +70,7 @@ struct VisitDLTensor {
   const DLTensor &operator()(const DLTensorPtr &t) const { return *t; }
   const DLTensor &operator()(std::monostate) const {
     // TT_THROW("Tensor is null");
+    std::cerr << "Tensor is null" << std::endl;
   }
 };
 
@@ -108,8 +110,8 @@ class Tensor {
   }
 
   DLManagedTensor *ToDLPack() {
-    // TT_ENFORCE(std::holds_alternative<details::DLManagedTensorPtr>(tensor_),
-    //            "Must own dltensor");
+    assert(std::holds_alternative<details::DLManagedTensorPtr>(tensor_)); 
+      // "Must own dltensor");
     return std::get<details::DLManagedTensorPtr>(tensor_).release();
   }
 
@@ -139,18 +141,10 @@ class Tensor {
   template <typename T>
   T *Reshape(std::vector<int64_t> shape_list, DLDeviceType device_type,
              int device_id, const std::string &name = "Reshape") {
-    // if Need Realloc
-#ifdef WITH_PERFTOOLS
-    auto &profile_ctx = core::Profiler::GetInstance();
-    profile_ctx.start_profile(name, device_type);
-#endif
     if (std::visit(ReshapeNeedRealloc(shape_list), tensor_)) {
       tensor_ = details::DLManagedTensorPtr(
           NewDLPackTensorT<T>(shape_list, device_type, device_id, name));
     }
-#ifdef WITH_PERFTOOLS
-    profile_ctx.end_profile(name, device_type);
-#endif
     return this->template mutableData<T>();
   }
 
@@ -168,20 +162,28 @@ class Tensor {
 
   DLDeviceType device_type() const {
     auto &dltensor = to_dl_tensor();
-    return dltensor.ctx.device_type;
+    return dltensor.device.device_type;
   }
 
   int device_id() const {
     auto &dltensor = to_dl_tensor();
-    return dltensor.ctx.device_id;
+    return dltensor.device.device_id;
   }
-  DLContext device_ctx() const {
+  DLDevice device_ctx() const {
     auto &dltensor = to_dl_tensor();
-    return dltensor.ctx;
+    return dltensor.device;
   }
 
   bool is_null() const {
     return std::holds_alternative<std::monostate>(tensor_);
+  }
+
+  void print_data() {
+    if (this->is_null() == true) {
+      std::cerr << "tensor has no payload in print_data" << std::endl;
+    }
+    assert(this->is_null() == false && "tensor has not payload");
+    this->Print<float>(std::cout);
   }
 
   template <typename T>
@@ -205,25 +207,22 @@ class Tensor {
     int cnt = 10;
     double sum = 0.;
 
+    os << "addr " << data<T>() << std::endl;
     if (device_type() == kDLCPU) {
       os << "CPU\n";
       for (int i = 0; i < numel(); ++i) {
         sum += data<T>()[i];
         if (cnt-- >= 0 || numel() - i <= 10) os << data<T>()[i] << ", ";
       }
-    } else if (device_type() == kDLGPU) {
-#ifdef TT_WITH_CUDA
+    } else if (device_type() == kDLCUDA) {
       os << "GPU\n";
-      auto n = numel();
-      std::unique_ptr<T[]> cpu_data(new T[n]);
-      Memcpy(cpu_data.get(), data<T>(), n * sizeof(T), MemcpyFlag::kGPU2CPU);
-      for (int i = 0; i < n; ++i) {
-        sum += cpu_data[i];
-        if (cnt-- >= 0 || n - i <= 10) os << cpu_data[i] << ", ";
-      }
-#else
-      // TT_THROW("No CUDA supported, Please Compile with TT_WITH_CUDA");
-#endif
+      // auto n = numel();
+      // std::unique_ptr<T[]> cpu_data(new T[n]);
+      // Memcpy(cpu_data.get(), data<T>(), n * sizeof(T), MemcpyFlag::kGPU2CPU);
+      // for (int i = 0; i < n; ++i) {
+      //   sum += cpu_data[i];
+      //   if (cnt-- >= 0 || n - i <= 10) os << cpu_data[i] << ", ";
+      // }
     }
     os << ")\n";
     os << "sum is " << sum << std::endl;
@@ -236,7 +235,7 @@ class Tensor {
     result->dtype = dl_tensor.dtype;
     result->byte_offset = 0;
     result->strides = nullptr;
-    result->ctx = dl_tensor.ctx;
+    result->device = dl_tensor.device;
     if (n == 0) {
       result->data = reinterpret_cast<void *>(
           reinterpret_cast<uintptr_t>(dl_tensor.data) + dl_tensor.byte_offset);
