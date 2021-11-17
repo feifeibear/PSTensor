@@ -1,9 +1,14 @@
 
+// Copyright (C) 2021 Jiarui Fang (fangjiarui123@gmail.com).
+// All rights reserved.
+
+// Copyright (C) 2021 Jiarui Fang (fangjiarui123@gmail.com).  All rights reserved.
+
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 
 #include "pybind11/pybind11.h"
-#include "ps_core/tensor.h"
+#include "core/tensor.h"
 
 namespace ps_tensor {
 namespace python {
@@ -37,6 +42,7 @@ py::class_<core::Tensor>(m, "Tensor")
            })
       .def("n_dim", &core::Tensor::n_dim)
       .def("shape", &core::Tensor::shape)
+      .def("prank", &core::Tensor::prank)
       .def("float_data", &core::Tensor::data<float>)
       .def("print", &core::Tensor::print_data)
       .def_static("create_empty", [] { return core::Tensor(nullptr); });

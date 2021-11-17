@@ -1,5 +1,10 @@
+// Copyright (C) 2021 Jiarui Fang (fangjiarui123@gmail.com).
+// All rights reserved.
+
+// Copyright (C) 2021 Jiarui Fang (fangjiarui123@gmail.com).  All rights reserved.
+
 #include "tensor.h"
-#include "ps_core/global_allocator.h"
+#include "core/global_allocator.h"
 
 namespace ps_tensor {
 namespace core {
@@ -9,17 +14,11 @@ static void DLManagedTensorDeletor(DLManagedTensor *self) {
   if (self == nullptr) {
     return;
   }
-  //  std::cerr << "call DLManagedTensorDeletor" << std::endl;
   if (self->dl_tensor.data != nullptr) {
-    if (self->dl_tensor.device.device_type == kDLCPU ||
-        self->dl_tensor.device.device_type == kDLCUDA) {
-      // set name = "", we really release the memory of data.
-      // naive : cpu releases mem on heap, gpu releases mem using cub.
-      // model-aware : name = "" cpu and gpu release mem on heap
-      // NOTICE, make sure not call this deletor on memory addr of DNN
-      // activaions allocated by model-aware allocator.
+    if (self->dl_tensor.ctx.device_type == kDLCPU ||
+        self->dl_tensor.ctx.device_type == kDLGPU) {
       allocator::Allocator &allocator = allocator::Allocator::GetInstance();
-      allocator.free(self->dl_tensor.data, self->dl_tensor.device.device_type, "");
+      allocator.free(self->dl_tensor.data, self->dl_tensor.ctx.device_type, "");
     }
   }
 
@@ -38,7 +37,7 @@ DLManagedTensor *NewDLPackTensor(const std::vector<int64_t> &shape_list,
   newTensor->dl_tensor.shape = new int64_t[shape_list.size()];
   std::copy(shape_list.begin(), shape_list.end(), newTensor->dl_tensor.shape);
 
-  newTensor->dl_tensor.device = {device, device_id};  // device_type, device_id
+  newTensor->dl_tensor.ctx = {device, device_id};  // device_type, device_id
   newTensor->dl_tensor.ndim = shape_list.size();
 
   newTensor->dl_tensor.dtype = {
@@ -50,13 +49,13 @@ DLManagedTensor *NewDLPackTensor(const std::vector<int64_t> &shape_list,
 
   size_t numel = std::accumulate(shape_list.begin(), shape_list.end(), 1,
                                  std::multiplies<int64_t>());
-  if (device == kDLCPU || device == kDLCUDA) {
+  if (device == kDLCPU || device == kDLGPU) {
     size_t size = numel * (bits / 8);
     allocator::Allocator &allocator = allocator::Allocator::GetInstance();
     newTensor->dl_tensor.data = allocator.allocate(size, device);
     newTensor->deleter = DLManagedTensorDeletor;
   } else {
-    // TT_THROW("only cpu and gpu are supported!");
+    TT_THROW("only cpu and gpu are supported!");
   }
 
   return newTensor;

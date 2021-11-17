@@ -1,6 +1,12 @@
+// Copyright (C) 2021 Jiarui Fang (fangjiarui123@gmail.com).
+// All rights reserved.
+
+// Copyright (C) 2021 Jiarui Fang (fangjiarui123@gmail.com).  All rights reserved.
+
 #pragma once
 #include <assert.h>
 #include <string>
+#include <memory>
 
 #define TT_THROW(...)                                         \
   do {                                                        \
