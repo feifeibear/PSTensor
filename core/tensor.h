@@ -1,3 +1,8 @@
+// Copyright (C) 2021 Jiarui Fang (fangjiarui123@gmail.com).
+// All rights reserved.
+
+// Copyright (C) 2021 Jiarui Fang (fangjiarui123@gmail.com).  All rights reserved.
+
 #pragma once
 #include <dlpack/dlpack.h>
 
@@ -96,7 +101,18 @@ class Tensor {
     if (tensor == nullptr) {
       tensor_ = std::monostate();
     } else {
+      std::cerr << "type " << tensor->dl_tensor.dtype.code << std::endl;
+      std::cerr << "ndim " << tensor->dl_tensor.ndim << std::endl;
+      std::cerr << "bits " << tensor->dl_tensor.dtype.bits << std::endl;
+
       tensor_ = details::DLManagedTensorPtr(tensor);
+      std::cerr << "Construction a Tensor" << std::endl;
+      auto &dl_tensor = to_dl_tensor();
+      std::cerr << "type " << dl_tensor.dtype.code << std::endl;
+      std::cerr << "bits " << dl_tensor.dtype.bits << std::endl;
+      std::cerr << "numel: " << numel() << std::endl;
+      std::cerr << "n_dim: " << n_dim() << std::endl;
+      std::cerr << "stride: ";
     }
   }
 
@@ -110,8 +126,7 @@ class Tensor {
   }
 
   DLManagedTensor *ToDLPack() {
-    assert(std::holds_alternative<details::DLManagedTensorPtr>(tensor_)); 
-      // "Must own dltensor");
+    TT_ENFORCE(std::holds_alternative<details::DLManagedTensorPtr>(tensor_), "Must own dltensor");
     return std::get<details::DLManagedTensorPtr>(tensor_).release();
   }
 

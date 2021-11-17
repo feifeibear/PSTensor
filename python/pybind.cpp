@@ -1,9 +1,14 @@
 
+// Copyright (C) 2021 Jiarui Fang (fangjiarui123@gmail.com).
+// All rights reserved.
+
+// Copyright (C) 2021 Jiarui Fang (fangjiarui123@gmail.com).  All rights reserved.
+
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 
 #include "pybind11/pybind11.h"
-#include "ps_core/tensor.h"
+#include "core/tensor.h"
 
 namespace ps_tensor {
 namespace python {

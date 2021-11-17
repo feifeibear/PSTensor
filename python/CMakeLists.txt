@@ -1,14 +1,14 @@
 pybind11_add_module(ps_tensor_cxx pybind.cpp)
 
-target_link_libraries(ps_tensor_cxx PRIVATE ps_core)
+target_link_libraries(ps_tensor_cxx PRIVATE core)
 
 SET(PY_PACKAGE_DIR ${CMAKE_CURRENT_BINARY_DIR}/pypackage)
-file(GLOB_RECURSE PY_PROJ_FILES ${CMAKE_CURRENT_SOURCE_DIR}/ps_core/*.py)
+file(GLOB_RECURSE PY_PROJ_FILES ${CMAKE_CURRENT_SOURCE_DIR}/core/*.py)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in ${PY_PACKAGE_DIR}/setup.py @ONLY)
 
 add_custom_command(OUTPUT ${PY_PACKAGE_DIR}/.timestamp
-        COMMAND "${CMAKE_COMMAND}" -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/ps_core ${PY_PACKAGE_DIR}/ps_core
+        COMMAND "${CMAKE_COMMAND}" -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/core ${PY_PACKAGE_DIR}/core
         COMMAND "${CMAKE_COMMAND}" -E copy
         "$<TARGET_FILE:ps_tensor_cxx>"
         "${PY_PACKAGE_DIR}/ps_tensor/$<TARGET_FILE_NAME:ps_tensor_cxx>"

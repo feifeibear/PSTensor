@@ -17,5 +17,5 @@ add_subdirectory(3rd)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/3rd/dlpack/include)
-add_subdirectory(ps_core)
+add_subdirectory(core)
 add_subdirectory(python)

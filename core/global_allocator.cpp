@@ -1,13 +1,18 @@
-#include "ps_core/global_allocator.h"
-#include "ps_core/base_allocator.h"
-#include "ps_core/cache_allocator.h"
+// Copyright (C) 2021 Jiarui Fang (fangjiarui123@gmail.com).
+// All rights reserved.
+
+// Copyright (C) 2021 Jiarui Fang (fangjiarui123@gmail.com).  All rights reserved.
+
+#include "core/global_allocator.h"
+#include "core/base_allocator.h"
+#include "core/cache_allocator.h"
 namespace ps_tensor {
 namespace core {
 namespace allocator {
 
 struct Allocator::AllocatorImpl {
   AllocatorImpl() : allocator_ptr(new NaiveAllocator()) {}
-  
+
   void* allocate(size_t size, DLDeviceType dev, const std::string& name) {
     return allocator_ptr->allocate(size, dev, name);
   }

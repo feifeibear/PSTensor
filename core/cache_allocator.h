@@ -1,8 +1,13 @@
+// Copyright (C) 2021 Jiarui Fang (fangjiarui123@gmail.com).
+// All rights reserved.
+
+// Copyright (C) 2021 Jiarui Fang (fangjiarui123@gmail.com).  All rights reserved.
+
 #pragma once
-#include "ps_core/base_allocator.h"
+#include "core/base_allocator.h"
 #include <sstream>
 #include <cuda_runtime.h>
-
+#include "core/enforce.h"
 #include <cub/util_allocator.cuh>
 namespace ps_tensor {
 namespace core {
@@ -45,12 +50,13 @@ class NaiveAllocator : public BaseAllocator {
 
   void free(void* mem, DLDeviceType dev, const std::string& name) override {
     if (dev == kDLCPU) {
+      // TODO(jiaruifang) We can not delete an void*
       delete mem;
     } else if (dev == kDLCUDA) {
       try {
         cudaError_t result = cub_allocator.DeviceFree(mem);
         if (result != cudaErrorCudartUnloading && result != cudaSuccess) {
-          throw std::runtime_error("DeviceFree failed ");
+          TT_THROW("DeviceFree failed ");
         }
       } catch (...) {
       }

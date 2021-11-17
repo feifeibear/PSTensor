@@ -1,15 +1,19 @@
+# Copyright (C) 2021 Jiarui Fang (fangjiarui123@gmail.com).
+# All rights reserved.
+
 import torch
 import torch.utils.dlpack as dlpack
 import ps_tensor.ps_tensor_cxx as cxx
 
 
-tensor = torch.randn(10)
-print('pytorch tensor', tensor)
-print('pytorch data_ptr', tensor.data_ptr())
+tensor = torch.randn(10, dtype=torch.float, device=torch.device("cuda"))
+print("pytorch tensor", tensor)
+print("pytorch data_ptr", tensor.data_ptr())
 
-# torch -> ps_tensor
+
 def convert2ps_tensor(t):
     return cxx.Tensor.from_dlpack(dlpack.to_dlpack(t))
+
 
 ps_tensor = convert2ps_tensor(tensor)
 print(ps_tensor.n_dim())

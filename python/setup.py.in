@@ -8,7 +8,7 @@ setup(name='ps_tensor',
       version='@PS_TENSOR_VERSION@',
       description='ps_tensor',
       packages=[
-          'ps_core',
+          'core',
       ],
       package_data={
           '': [

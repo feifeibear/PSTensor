@@ -1,5 +1,10 @@
+// Copyright (C) 2021 Jiarui Fang (fangjiarui123@gmail.com).
+// All rights reserved.
+
+// Copyright (C) 2021 Jiarui Fang (fangjiarui123@gmail.com).  All rights reserved.
+
 #include "tensor.h"
-#include "ps_core/global_allocator.h"
+#include "core/global_allocator.h"
 
 namespace ps_tensor {
 namespace core {
@@ -9,15 +14,9 @@ static void DLManagedTensorDeletor(DLManagedTensor *self) {
   if (self == nullptr) {
     return;
   }
-  //  std::cerr << "call DLManagedTensorDeletor" << std::endl;
   if (self->dl_tensor.data != nullptr) {
     if (self->dl_tensor.device.device_type == kDLCPU ||
         self->dl_tensor.device.device_type == kDLCUDA) {
-      // set name = "", we really release the memory of data.
-      // naive : cpu releases mem on heap, gpu releases mem using cub.
-      // model-aware : name = "" cpu and gpu release mem on heap
-      // NOTICE, make sure not call this deletor on memory addr of DNN
-      // activaions allocated by model-aware allocator.
       allocator::Allocator &allocator = allocator::Allocator::GetInstance();
       allocator.free(self->dl_tensor.data, self->dl_tensor.device.device_type, "");
     }

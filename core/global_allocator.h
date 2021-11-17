@@ -1,3 +1,8 @@
+// Copyright (C) 2021 Jiarui Fang (fangjiarui123@gmail.com).
+// All rights reserved.
+
+// Copyright (C) 2021 Jiarui Fang (fangjiarui123@gmail.com).  All rights reserved.
+
 #pragma once
 #include <dlpack/dlpack.h>
 
