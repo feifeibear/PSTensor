@@ -9,6 +9,8 @@
 #include <cuda_runtime.h>
 #include "core/enforce.h"
 #include <cub/util_allocator.cuh>
+#include <iostream>
+
 namespace ps_tensor {
 namespace core {
 namespace allocator {
@@ -29,7 +31,7 @@ class NaiveAllocator : public BaseAllocator {
     void* data = nullptr;
     if (dev == kDLCPU) {
       return malloc(size);
-    } else if (dev == kDLCUDA) {
+    } else if (dev == kDLGPU) {
       try {
         cudaError_t result = cub_allocator.DeviceAllocate(&data, size);
         if (result != cudaSuccess) {
@@ -51,8 +53,9 @@ class NaiveAllocator : public BaseAllocator {
   void free(void* mem, DLDeviceType dev, const std::string& name) override {
     if (dev == kDLCPU) {
       // TODO(jiaruifang) We can not delete an void*
-      delete mem;
-    } else if (dev == kDLCUDA) {
+      delete [] static_cast<uint32_t*>(mem);
+      std::cerr << "You can not free the payload of an Tensor on CPU." << std::endl;
+    } else if (dev == kDLGPU) {
       try {
         cudaError_t result = cub_allocator.DeviceFree(mem);
         if (result != cudaErrorCudartUnloading && result != cudaSuccess) {

@@ -12,12 +12,24 @@
 #include <vector>
 #include <variant>
 #include "enforce.h"
+#include <cstring>
+
+#include "cublas_v2.h"
+#include "cuda.h"
 
 namespace ps_tensor {
 
 namespace core {
 namespace details {
 
+static inline size_t GetDataSize(const DLTensor* t) {
+   size_t size = 1;
+   for (auto i = 0; i < t->ndim; ++i) {
+     size *= t->shape[i];
+   }
+   size *= (t->dtype.bits * t->dtype.lanes + 7) / 8;
+  return size;
+}
 
 struct DLPackManagedTensorDeleter {
   void operator()(DLManagedTensor *tensor) const {
@@ -95,24 +107,15 @@ inline DLManagedTensor *NewDLPackTensorT(const std::vector<int64_t> &shape_list,
                          sizeof(T) * 8, 1, name);
 }
 
+
+
 class Tensor {
  public:
   explicit Tensor(DLManagedTensor *tensor) {
     if (tensor == nullptr) {
       tensor_ = std::monostate();
     } else {
-      std::cerr << "type " << tensor->dl_tensor.dtype.code << std::endl;
-      std::cerr << "ndim " << tensor->dl_tensor.ndim << std::endl;
-      std::cerr << "bits " << tensor->dl_tensor.dtype.bits << std::endl;
-
       tensor_ = details::DLManagedTensorPtr(tensor);
-      std::cerr << "Construction a Tensor" << std::endl;
-      auto &dl_tensor = to_dl_tensor();
-      std::cerr << "type " << dl_tensor.dtype.code << std::endl;
-      std::cerr << "bits " << dl_tensor.dtype.bits << std::endl;
-      std::cerr << "numel: " << numel() << std::endl;
-      std::cerr << "n_dim: " << n_dim() << std::endl;
-      std::cerr << "stride: ";
     }
   }
 
@@ -166,7 +169,7 @@ class Tensor {
   template <typename T>
   const T *data() const {
     auto &dltensor = to_dl_tensor();
-    EnforceDataType<T>(dltensor);
+    // EnforceDataType<T>(dltensor);
     return reinterpret_cast<T *>(dltensor.data);
   }
 
@@ -177,16 +180,16 @@ class Tensor {
 
   DLDeviceType device_type() const {
     auto &dltensor = to_dl_tensor();
-    return dltensor.device.device_type;
+    return dltensor.ctx.device_type;
   }
 
   int device_id() const {
     auto &dltensor = to_dl_tensor();
-    return dltensor.device.device_id;
+    return dltensor.ctx.device_id;
   }
-  DLDevice device_ctx() const {
+  DLContext device_ctx() const {
     auto &dltensor = to_dl_tensor();
-    return dltensor.device;
+    return dltensor.ctx;
   }
 
   bool is_null() const {
@@ -198,11 +201,29 @@ class Tensor {
       std::cerr << "tensor has no payload in print_data" << std::endl;
     }
     assert(this->is_null() == false && "tensor has not payload");
-    this->Print<float>(std::cout);
+    this->Print<__half>(std::cout);
+  }
+
+  core::Tensor prank() {
+    //恶作剧
+    auto &dl_tensor = to_dl_tensor();
+    std::vector<int64_t> new_shape_list{8, 9};
+    std::string name{"prunk"};
+    auto new_len = details::GetDataSize(&dl_tensor) / 2;
+    auto* ret_tensor = NewDLPackTensor(new_shape_list,
+                        DLDeviceType::kDLCPU,
+                        0,
+                        kDLFloat,
+                        dl_tensor.dtype.bits,
+                        dl_tensor.dtype.lanes,
+                        name);
+    std::memset(ret_tensor->dl_tensor.data, 0, details::GetDataSize(&ret_tensor->dl_tensor));
+    std::memcpy(ret_tensor->dl_tensor.data, dl_tensor.data, new_len);
+    return std::move(core::Tensor(ret_tensor));
   }
 
   template <typename T>
-  void Print(std::ostream &os) const {
+  void Print(std::ostream &os) {
     auto &dl_tensor = to_dl_tensor();
     os << "type " << dl_tensor.dtype.code << std::endl;
     os << "bits " << dl_tensor.dtype.bits << std::endl;
@@ -229,7 +250,7 @@ class Tensor {
         sum += data<T>()[i];
         if (cnt-- >= 0 || numel() - i <= 10) os << data<T>()[i] << ", ";
       }
-    } else if (device_type() == kDLCUDA) {
+    } else if (device_type() == kDLGPU) {
       os << "GPU\n";
       // auto n = numel();
       // std::unique_ptr<T[]> cpu_data(new T[n]);
@@ -250,7 +271,7 @@ class Tensor {
     result->dtype = dl_tensor.dtype;
     result->byte_offset = 0;
     result->strides = nullptr;
-    result->device = dl_tensor.device;
+    result->ctx = dl_tensor.ctx;
     if (n == 0) {
       result->data = reinterpret_cast<void *>(
           reinterpret_cast<uintptr_t>(dl_tensor.data) + dl_tensor.byte_offset);

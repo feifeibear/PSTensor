@@ -10,4 +10,5 @@ target_link_libraries(core PUBLIC
         ${RT_LIBRARY}
         ${CMAKE_DL_LIBS}
         cudart cuda cublas
+        Eigen3::Eigen
         )
