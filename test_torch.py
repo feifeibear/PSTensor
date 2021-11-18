@@ -4,6 +4,7 @@
 import torch
 import ps_tensor
 
+ps_tensor.set_stderr_verbose_level(0)
 # tensor = torch.randn(10, dtype=torch.float, device=torch.device("cuda"))
 tensor = torch.randn(2, 3, dtype=torch.half)
 print("pytorch tensor", tensor)

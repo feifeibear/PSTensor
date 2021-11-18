@@ -14,7 +14,7 @@
 #include "enforce.h"
 #include <cstring>
 #include "common.h"
-
+#include "loguru.hpp"
 #include "cublas_v2.h"
 #include "cuda.h"
 
@@ -189,7 +189,7 @@ class Tensor {
 
   void print_data() {
     if (this->is_null() == true) {
-      std::cerr << "tensor has no payload in print_data" << std::endl;
+      LOG_S(WARNING) << "tensor has no payload in print_data" << std::endl;
     }
     assert(this->is_null() == false && "tensor has not payload");
     this->Print<__half>(std::cout);

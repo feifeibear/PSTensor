@@ -28,6 +28,12 @@ static void DLPack_Capsule_Destructor(PyObject *data) {
   }
 }
 PYBIND11_MODULE(ps_tensor_cxx, m) {
+  char *argv[] = {strdup("turbo_transformers_cxx"), nullptr};
+  int argc = 1;
+  loguru::init(argc, argv);
+  m.def("set_stderr_verbose_level",
+        [](int v) { loguru::g_stderr_verbosity = v; });
+
 py::class_<core::Tensor>(m, "Tensor")
       .def_static("from_dlpack",
                   [](py::capsule capsule) -> std::unique_ptr<core::Tensor> {

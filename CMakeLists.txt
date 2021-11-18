@@ -14,7 +14,7 @@ project(ps_tensor LANGUAGES CXX C CUDA)
 
 
 add_subdirectory(3rd)
-find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+# find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/3rd/dlpack/include)

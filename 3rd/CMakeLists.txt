@@ -4,3 +4,7 @@ target_include_directories(dlpack INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/dlpack/i
 add_subdirectory(pybind11)
 add_subdirectory(eigen-git-mirror)
 set(BUILD_TESTING OFF)
+
+add_library(loguru loguru/loguru.cpp)
+target_include_directories(loguru PUBLIC loguru/)
+target_compile_definitions(loguru PUBLIC LOGURU_WITH_STREAMS=1)
