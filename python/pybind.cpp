@@ -43,6 +43,7 @@ py::class_<core::Tensor>(m, "Tensor")
       .def("n_dim", &core::Tensor::n_dim)
       .def("shape", &core::Tensor::shape)
       .def("prank", &core::Tensor::prank)
+      .def("move_gpu", &core::Tensor::move_gpu)
       .def("float_data", &core::Tensor::data<float>)
       .def("print", &core::Tensor::print_data)
       .def_static("create_empty", [] { return core::Tensor(nullptr); });
