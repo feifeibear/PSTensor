@@ -61,5 +61,15 @@ DLManagedTensor *NewDLPackTensor(const std::vector<int64_t> &shape_list,
   return newTensor;
 }
 
+void Tensor::move_gpu() {
+  auto &dl_tensor = to_dl_tensor();
+  allocator::Allocator &allocator = allocator::Allocator::GetInstance();
+  std::cerr << "allocate " << details::GetDataSize(&dl_tensor) << "bytes on CUDA" << std::endl;
+  void* dst = allocator.allocate(details::GetDataSize(&dl_tensor), kDLGPU);
+  delete dl_tensor.data;
+  dl_tensor.data = dst;
+  dl_tensor.ctx.device_type = kDLGPU;
+}
+
 }  // namespace core
 }  // namespace ps_tensor

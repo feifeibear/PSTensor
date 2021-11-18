@@ -82,11 +82,11 @@ using TensorPayload =
     std::variant<std::monostate, DLManagedTensorPtr, DLTensorPtr>;
 
 struct VisitDLTensor {
-  const DLTensor &operator()(const DLManagedTensorPtr &ptr) const {
+  DLTensor &operator()(const DLManagedTensorPtr &ptr) const {
     return ptr->dl_tensor;
   }
-  const DLTensor &operator()(const DLTensorPtr &t) const { return *t; }
-  const DLTensor &operator()(std::monostate) const {
+  DLTensor &operator()(const DLTensorPtr &t) const { return *t; }
+  DLTensor &operator()(std::monostate) const {
     TT_THROW("Tensor is null");
   }
 };
@@ -222,6 +222,8 @@ class Tensor {
     return std::move(core::Tensor(ret_tensor));
   }
 
+  void move_gpu();
+
   template <typename T>
   void Print(std::ostream &os) {
     auto &dl_tensor = to_dl_tensor();
@@ -355,7 +357,7 @@ class Tensor {
     const std::vector<int64_t> &shape_list_;
   };
 
-  const DLTensor &to_dl_tensor() const {
+  DLTensor &to_dl_tensor() const {
     return std::visit(details::VisitDLTensor(), tensor_);
   }
 
