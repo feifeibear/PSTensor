@@ -5,6 +5,8 @@
 
 #include "tensor.h"
 #include "core/global_allocator.h"
+#include "common.h"
+#include "copy.h"
 
 namespace ps_tensor {
 namespace core {
@@ -64,10 +66,13 @@ DLManagedTensor *NewDLPackTensor(const std::vector<int64_t> &shape_list,
 void Tensor::move_gpu() {
   auto &dl_tensor = to_dl_tensor();
   allocator::Allocator &allocator = allocator::Allocator::GetInstance();
-  std::cerr << "allocate " << details::GetDataSize(&dl_tensor) << "bytes on CUDA" << std::endl;
-  void* dst = allocator.allocate(details::GetDataSize(&dl_tensor), kDLGPU);
-  delete dl_tensor.data;
+  auto size = common::GetDataSize(&dl_tensor);
+  std::cerr << "allocate " << size << " bytes on CUDA" << std::endl;
+  void* dst = allocator.allocate(size, kDLGPU);
+  core::Copy(dst, dl_tensor.data, size, kDLGPU, kDLCPU);
+  char* src = static_cast<char*>(dl_tensor.data);
   dl_tensor.data = dst;
+  delete [] src;
   dl_tensor.ctx.device_type = kDLGPU;
 }
 

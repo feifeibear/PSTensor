@@ -4,6 +4,7 @@ add_library(core
             cache_allocator.cpp
             base_allocator.cpp
             global_allocator.cpp
+            copy.cpp
         )
 target_link_libraries(core PUBLIC
         dlpack

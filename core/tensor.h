@@ -13,23 +13,14 @@
 #include <variant>
 #include "enforce.h"
 #include <cstring>
+#include "common.h"
 
 #include "cublas_v2.h"
 #include "cuda.h"
 
 namespace ps_tensor {
-
 namespace core {
 namespace details {
-
-static inline size_t GetDataSize(const DLTensor* t) {
-   size_t size = 1;
-   for (auto i = 0; i < t->ndim; ++i) {
-     size *= t->shape[i];
-   }
-   size *= (t->dtype.bits * t->dtype.lanes + 7) / 8;
-  return size;
-}
 
 struct DLPackManagedTensorDeleter {
   void operator()(DLManagedTensor *tensor) const {
@@ -202,24 +193,6 @@ class Tensor {
     }
     assert(this->is_null() == false && "tensor has not payload");
     this->Print<__half>(std::cout);
-  }
-
-  core::Tensor prank() {
-    //恶作剧
-    auto &dl_tensor = to_dl_tensor();
-    std::vector<int64_t> new_shape_list{8, 9};
-    std::string name{"prunk"};
-    auto new_len = details::GetDataSize(&dl_tensor) / 2;
-    auto* ret_tensor = NewDLPackTensor(new_shape_list,
-                        DLDeviceType::kDLCPU,
-                        0,
-                        kDLFloat,
-                        dl_tensor.dtype.bits,
-                        dl_tensor.dtype.lanes,
-                        name);
-    std::memset(ret_tensor->dl_tensor.data, 0, details::GetDataSize(&ret_tensor->dl_tensor));
-    std::memcpy(ret_tensor->dl_tensor.data, dl_tensor.data, new_len);
-    return std::move(core::Tensor(ret_tensor));
   }
 
   void move_gpu();
