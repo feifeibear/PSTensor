@@ -2,4 +2,5 @@
 # All rights reserved.
 
 from .utils import (cxx, torch_to_ps_tensor, ps_tensor_to_torch,
-                    set_stderr_verbose_level, ps_flush_payload, ps_move)
+                    tf_to_ps_tensor, ps_tensor_to_tf, set_stderr_verbose_level,
+                    ps_flush_payload, ps_move)
