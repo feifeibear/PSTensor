@@ -17,5 +17,5 @@ pip install `find . -name "*whl"`
 
 
 ## Usage
-See [PyTorch Example]('./test_torch') for details.
+See [PyTorch Example](./test_torch) for details.
 More features are Working In Progress.
