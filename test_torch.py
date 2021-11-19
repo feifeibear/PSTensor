@@ -24,3 +24,9 @@ print("moved_tensor data_ptr: ", moved_tensor.data_ptr())
 # Test torch.narrow
 narrowed_tensor = torch.narrow(moved_tensor.view(-1), 0, 0, 2)
 print('narrowed_tensor ', narrowed_tensor)
+
+# test inline add
+moved_tensor.add_(1)
+# The following code will release our allocated memory.
+# moved_tensor = moved_tensor + 1
+print("add moved_tensor with 1", moved_tensor, moved_tensor.data_ptr())
