@@ -195,7 +195,9 @@ class Tensor {
     this->Print<__half>(std::cout);
   }
 
-  void move_gpu();
+  Tensor move(const std::string device_type);
+
+  Tensor clone();
 
   template <typename T>
   void Print(std::ostream &os) {

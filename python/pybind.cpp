@@ -48,9 +48,10 @@ py::class_<core::Tensor>(m, "Tensor")
            })
       .def("n_dim", &core::Tensor::n_dim)
       .def("shape", &core::Tensor::shape)
-      .def("move_gpu", &core::Tensor::move_gpu)
+      .def("move", &core::Tensor::move)
       .def("float_data", &core::Tensor::data<float>)
       .def("print", &core::Tensor::print_data)
+      .def("clone", &core::Tensor::clone)
       .def_static("create_empty", [] { return core::Tensor(nullptr); });
 }
 }  // namespace python

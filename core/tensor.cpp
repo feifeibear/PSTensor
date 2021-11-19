@@ -63,18 +63,46 @@ DLManagedTensor *NewDLPackTensor(const std::vector<int64_t> &shape_list,
   return newTensor;
 }
 
-void Tensor::move_gpu() {
+Tensor Tensor::move(const std::string device_type) {
   auto &dl_tensor = to_dl_tensor();
   allocator::Allocator &allocator = allocator::Allocator::GetInstance();
   auto size = common::GetDataSize(&dl_tensor);
-  std::cerr << "allocate " << size << " bytes on CUDA" << std::endl;
-  void* dst = allocator.allocate(size, kDLGPU);
-  core::Copy(dst, dl_tensor.data, size, kDLGPU, kDLCPU);
-  char* src = static_cast<char*>(dl_tensor.data);
-  dl_tensor.data = dst;
-  delete [] src;
-  dl_tensor.ctx.device_type = kDLGPU;
+  DLDeviceType target_dev;
+  if (device_type == "cpu") {
+    target_dev = kDLCPU;
+  } else if (device_type == "cuda") {
+    target_dev = kDLGPU;
+  }
+  // std::cerr << "allocate " << size << " bytes on " << target_dev << std::endl;
+  // void* dst = allocator.allocate(size, target_dev);
+  // core::Copy(dst, dl_tensor.data, size, target_dev, dl_tensor.ctx.device_type);
+  // dl_tensor.data = dst;
+  // dl_tensor.ctx.device_type = target_dev;
+  std::vector<int64_t> shape_vec;
+  for (auto i = 0; i < dl_tensor.ndim; ++i) {
+     shape_vec.push_back(dl_tensor.shape[i]);
+   }
+  auto t = NewDLPackTensor(shape_vec, target_dev, dl_tensor.ctx.device_id,
+                         dl_tensor.dtype.code,
+                         dl_tensor.dtype.bits,
+                         dl_tensor.dtype.lanes, "");
+  core::Copy(t->dl_tensor.data, dl_tensor.data, size, target_dev, dl_tensor.ctx.device_type);
+  return std::move(Tensor(t));
 }
 
+Tensor Tensor::clone() {
+  auto &dl_tensor = to_dl_tensor();
+  auto size = common::GetDataSize(&dl_tensor);
+  std::vector<int64_t> shape_vec;
+  for (auto i = 0; i < dl_tensor.ndim; ++i) {
+     shape_vec.push_back(dl_tensor.shape[i]);
+   }
+  auto t = NewDLPackTensor(shape_vec, dl_tensor.ctx.device_type, dl_tensor.ctx.device_id,
+                         dl_tensor.dtype.code,
+                         dl_tensor.dtype.bits,
+                         dl_tensor.dtype.lanes, "");
+  core::Copy(t->dl_tensor.data, dl_tensor.data, size, dl_tensor.ctx.device_type, dl_tensor.ctx.device_type);
+  return std::move(Tensor(t));
+}
 }  // namespace core
 }  // namespace ps_tensor

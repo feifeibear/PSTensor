@@ -10,6 +10,7 @@
 #include "core/enforce.h"
 #include <cub/util_allocator.cuh>
 #include <iostream>
+#include "loguru.hpp"
 
 namespace ps_tensor {
 namespace core {
@@ -54,7 +55,7 @@ class NaiveAllocator : public BaseAllocator {
     if (dev == kDLCPU) {
       // TODO(jiaruifang) We can not delete an void*
       delete [] static_cast<uint32_t*>(mem);
-      std::cerr << "You can not free the payload of an Tensor on CPU." << std::endl;
+      LOG_S(INFO) << "Free the payload of a capsule on CPU." << std::endl;
     } else if (dev == kDLGPU) {
       try {
         cudaError_t result = cub_allocator.DeviceFree(mem);
