@@ -7,9 +7,9 @@ with open("stub.c", "w") as f:
 setup(name='ps_tensor',
       version='@PS_TENSOR_VERSION@',
       description='ps_tensor',
-#      packages=[
-#          'core',
-#      ],
+      packages=[
+          'ps_tensor',
+      ],
       package_data={
           '': [
               '*.so',

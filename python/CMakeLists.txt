@@ -3,7 +3,7 @@ pybind11_add_module(ps_tensor_cxx pybind.cpp)
 target_link_libraries(ps_tensor_cxx PRIVATE core)
 
 SET(PY_PACKAGE_DIR ${CMAKE_CURRENT_BINARY_DIR}/pypackage)
-file(GLOB_RECURSE PY_PROJ_FILES ${CMAKE_CURRENT_SOURCE_DIR}/api/*.py)
+file(GLOB_RECURSE PY_PROJ_FILES ${CMAKE_CURRENT_SOURCE_DIR}/ps_tensor/*.py)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in ${PY_PACKAGE_DIR}/setup.py @ONLY)
 
