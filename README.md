@@ -1,4 +1,4 @@
-## PSTensor : Custimized a Tensor Data Structure Compatible with PyTorch and TensorFlow.
+## PSTensor : Customized a Tensor Data Structure Compatible with PyTorch and TensorFlow.
 
 
 You may need this software in the following cases.
